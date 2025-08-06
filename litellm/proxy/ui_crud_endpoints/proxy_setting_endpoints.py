@@ -497,20 +497,34 @@ async def update_sso_settings(sso_config: SSOConfig):
 
     # Update environment variables in config and in memory
     sso_data = sso_config.model_dump(exclude_none=True)
-    for field_name, value in sso_data.items():
-
-        if field_name == "user_email" and value is not None:
-            # Store user_email in general_settings instead of environment variables
-            config["general_settings"]["proxy_admin_email"] = value
-        elif field_name == "ui_access_mode" and value is not None:
-
-            config["general_settings"]["ui_access_mode"] = value
-        elif field_name in env_var_mapping and value is not None:
-            env_var_name = env_var_mapping[field_name]
-            # Update in config
+    for field_name, env_var_name in env_var_mapping.items():
+        if field_name in sso_data and sso_data[field_name] is not None:
+            # Set the environment variable if field exists and has a value
+            value = sso_data[field_name]
             config["environment_variables"][env_var_name] = value
-            # Update in runtime environment
             os.environ[env_var_name] = value
+        else:
+            # Clear the environment variable if field doesn't exist or is None
+            config["environment_variables"].pop(env_var_name, None)
+            os.environ.pop(env_var_name, None)
+
+    # for field_name, value in sso_data.items():
+
+    #     if field_name == "user_email" and value is not None:
+    #         # Store user_email in general_settings instead of environment variables
+    #         config["general_settings"]["proxy_admin_email"] = value
+    #     elif field_name == "ui_access_mode" and value is not None:
+
+    #         config["general_settings"]["ui_access_mode"] = value
+    #     elif field_name in env_var_mapping:
+    #         if value is not None:
+    #             env_var_name = env_var_mapping[field_name]
+    #             # Update in config
+    #             config["environment_variables"][env_var_name] = value
+    #             # Update in runtime environment
+    #             os.environ[env_var_name] = value
+    #         else:
+    #             config["environment_variables"].pop(env_var_name, None)
 
     stored_config = config
     if len(config["environment_variables"]) > 0:
