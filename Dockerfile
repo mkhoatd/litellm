@@ -1,19 +1,38 @@
-# Base image for building
-ARG LITELLM_BUILD_IMAGE=cgr.dev/chainguard/python:latest-dev
-
-# Runtime image
-ARG LITELLM_RUNTIME_IMAGE=cgr.dev/chainguard/python:latest-dev
-# Builder stage
-FROM $LITELLM_BUILD_IMAGE AS builder
+# Base image for building - Ubuntu with Python 3.12
+FROM ubuntu:22.04 AS builder
 
 # Set the working directory to /app
 WORKDIR /app
 
-USER root
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
-RUN apk add --no-cache gcc python3-dev openssl openssl-dev
+# Install Python 3.12, Node.js, npm, and build dependencies
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    curl \
+    gcc \
+    g++ \
+    python3-dev \
+    openssl \
+    libssl-dev \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update \
+    && apt-get install -y \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Create symbolic links for Python 3.12 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
+# Install pip for Python 3.12
+RUN curl https://bootstrap.pypa.io/get-pip.py | python3.12
 
 RUN pip install --upgrade pip && \
     pip install build
@@ -44,14 +63,35 @@ RUN pip install PyJWT==2.9.0 --no-cache-dir
 # Build Admin UI
 RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 
-# Runtime stage
-FROM $LITELLM_RUNTIME_IMAGE AS runtime
+# Runtime stage - Ubuntu with Python 3.12
+FROM ubuntu:22.04 AS runtime
 
-# Ensure runtime stage runs as root
-USER root
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime dependencies
-RUN apk add --no-cache openssl tzdata
+# Install Python 3.12, Node.js and runtime dependencies
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    curl \
+    openssl \
+    tzdata \
+    supervisor \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update \
+    && apt-get install -y \
+    python3.12 \
+    python3.12-venv \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symbolic links for Python 3.12 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+
+# Install pip for Python 3.12
+RUN curl https://bootstrap.pypa.io/get-pip.py | python3.12
 
 WORKDIR /app
 # Copy the current directory contents into the container at /app
@@ -75,7 +115,7 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
-RUN apk add --no-cache supervisor
+# Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 ENTRYPOINT ["docker/prod_entrypoint.sh"]

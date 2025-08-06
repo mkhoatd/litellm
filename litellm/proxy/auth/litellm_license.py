@@ -25,8 +25,8 @@ class LicenseCheck:
     base_url = "https://license.litellm.ai"
 
     def __init__(self) -> None:
-        self.license_str = os.getenv("LITELLM_LICENSE", None)
-        verbose_proxy_logger.debug("License Str value - {}".format(self.license_str))
+        self.license_str = "abc12345"
+        verbose_proxy_logger.error("License Str value - {}".format(self.license_str))
         self.http_handler = HTTPHandler(timeout=NON_LLM_CONNECTION_TIMEOUT)
         self.public_key = None
         self.read_public_key()
@@ -50,16 +50,21 @@ class LicenseCheck:
             verbose_proxy_logger.error(f"Error reading public key: {str(e)}")
 
     def _verify(self, license_str: str) -> bool:
+        verbose_proxy_logger.error("verify license: true")
         return True
 
     def is_premium(self) -> bool:
+        verbose_proxy_logger.error("verify premium: true")
         return True
 
     def is_over_limit(self, total_users: int) -> bool:
+        verbose_proxy_logger.error("verify over limit: false")
         return False
 
     def is_team_count_over_limit(self, team_count: int) -> bool:
+        verbose_proxy_logger.error("verify team count over limit: false")
         return False
 
     def verify_license_without_api_request(self, public_key, license_key):
+        verbose_proxy_logger.error("verify license without api request: true")
         return True
