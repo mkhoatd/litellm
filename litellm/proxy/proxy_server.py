@@ -2611,6 +2611,8 @@ class ProxyConfig:
         """
         encrypted_env_vars = {}
         for k, v in environment_variables.items():
+            if v is None:
+                continue
             encrypted_value = encrypt_value_helper(
                 value=v, new_encryption_key=new_encryption_key
             )
