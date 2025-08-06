@@ -60,9 +60,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ steps.meta.outputs.tags }}-latest,
-            ${{ env.REGISTRY }}/berriai/litellm:latest
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
   
@@ -101,9 +99,7 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: |
-            ${{ steps.meta-ee.outputs.tags }}-latest,
-            ${{ env.REGISTRY }}/berriai/litellm-ee:latest
+          tags: ${{ steps.meta-ee.outputs.tags }}
           labels: ${{ steps.meta-ee.outputs.labels }}
           platforms: linux/amd64
    
