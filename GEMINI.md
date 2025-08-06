@@ -12,7 +12,7 @@ This file provides guidance to Gemini when working with code in this repository.
 ### Testing
 - `make test` - Run all tests
 - `make test-unit` - Run unit tests (tests/test_litellm) with 4 parallel workers
-- `make test-integration` - Run integration tests (excludes unit tests)
+- `make test-integration` - Run integration tests (excludes unit **tests**)
 - `pytest tests/` - Direct pytest execution
 
 ### Code Quality

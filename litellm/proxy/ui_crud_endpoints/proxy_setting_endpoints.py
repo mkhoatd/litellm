@@ -503,10 +503,19 @@ async def update_sso_settings(sso_config: SSOConfig):
             value = sso_data[field_name]
             config["environment_variables"][env_var_name] = value
             os.environ[env_var_name] = value
+            # Log sensitive fields with masked values, non-sensitive fields with actual values
+            if "secret" in field_name.lower() or "password" in field_name.lower():
+                verbose_proxy_logger.info(f"SSO Config Update: Setting {env_var_name} (field: {field_name}) = [REDACTED]")
+            else:
+                verbose_proxy_logger.info(f"SSO Config Update: Setting {env_var_name} (field: {field_name}) = {value}")
         else:
             # Clear the environment variable if field doesn't exist or is None
-            config["environment_variables"].pop(env_var_name, None)
-            os.environ.pop(env_var_name, None)
+            if env_var_name in config.get("environment_variables", {}) or env_var_name in os.environ:
+                config["environment_variables"].pop(env_var_name, None)
+                os.environ.pop(env_var_name, None)
+                verbose_proxy_logger.info(f"SSO Config Update: Clearing {env_var_name} (field: {field_name})")
+    verbose_proxy_logger.info(f"SSO Config Update: {config['environment_variables']}")
+    verbose_proxy_logger.info(f"SSO Config Update: {os.environ}")
 
     # for field_name, value in sso_data.items():
 
