@@ -465,10 +465,12 @@ async def update_sso_settings(sso_config: SSOConfig):
     """
     Update SSO configuration by saving to both environment variables and config file.
     """
+    verbose_proxy_logger.info(f"Updating SSO settings: {sso_config}")
     import os
 
     from litellm.proxy.proxy_server import proxy_config
 
+    verbose_proxy_logger.info(f"Environment variables: {os.environ}")
     # Update environment variables
     env_var_mapping = {
         "google_client_id": "GOOGLE_CLIENT_ID",
@@ -486,6 +488,7 @@ async def update_sso_settings(sso_config: SSOConfig):
 
     # Load existing config
     config = await proxy_config.get_config()
+    verbose_proxy_logger.info(f"Config: {config}")
 
     # Update config with new environment variables
     if "environment_variables" not in config:
@@ -494,7 +497,9 @@ async def update_sso_settings(sso_config: SSOConfig):
     # Update general_settings for user_email (admin email)
     if "general_settings" not in config:
         config["general_settings"] = {}
+    
 
+    verbose_proxy_logger.info(f"Starting SSO Config Update: {config}")
     # Update environment variables in config and in memory
     sso_data = sso_config.model_dump(exclude_none=True)
     for field_name, env_var_name in env_var_mapping.items():
