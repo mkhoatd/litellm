@@ -385,13 +385,32 @@ async def get_sso_settings():
     config = await proxy_config.get_config()
     general_settings = config.get("general_settings", {}) or {}
     environment_variables = config.get("environment_variables", {}) or {}
+    verbose_proxy_logger.info(f"Environment variables: {environment_variables}")
 
     # Get user_email from general_settings
     proxy_admin_email = general_settings.get("proxy_admin_email", None)
+    verbose_proxy_logger.info(f"Proxy admin email: {proxy_admin_email}")
 
     # Helper function to get env var value (first from config, then from environment)
     def get_env_value(env_var_name: str):
-        return environment_variables.get(env_var_name) or os.getenv(env_var_name)
+        # Get the encrypted value from config
+        encrypted_value = environment_variables.get(env_var_name)
+        if encrypted_value:
+            # Decrypt the value before returning
+            from litellm.proxy.common_utils.encrypt_decrypt_utils import decrypt_value_helper
+            decrypted_value = decrypt_value_helper(value=encrypted_value, key=env_var_name, exception_type="debug")
+            if decrypted_value:
+                return decrypted_value
+        # Fall back to environment variable if not in config or decryption failed
+        return os.getenv(env_var_name)
+
+    verbose_proxy_logger.info(f"GOOGLE_CLIENT_ID: {get_env_value('GOOGLE_CLIENT_ID')}")
+    verbose_proxy_logger.info(f"GOOGLE_CLIENT_SECRET: {get_env_value('GOOGLE_CLIENT_SECRET')}")
+    verbose_proxy_logger.info(f"MICROSOFT_CLIENT_ID: {get_env_value('MICROSOFT_CLIENT_ID')}")
+    verbose_proxy_logger.info(f"MICROSOFT_CLIENT_SECRET: {get_env_value('MICROSOFT_CLIENT_SECRET')}")
+    verbose_proxy_logger.info(f"MICROSOFT_TENANT: {get_env_value('MICROSOFT_TENANT')}")
+    verbose_proxy_logger.info(f"GENERIC_CLIENT_ID: {get_env_value('GENERIC_CLIENT_ID')}")
+    verbose_proxy_logger.info(f"GENERIC_CLIENT_SECRET: {get_env_value('GENERIC_CLIENT_SECRET')}")
 
     # Get current environment variables for SSO
     sso_config = SSOConfig(
