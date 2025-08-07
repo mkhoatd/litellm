@@ -400,9 +400,10 @@ async def serve_login_page(
 </html>
     """
 
-    from fastapi.responses import HTMLResponse
+    from fastapi.responses import HTMLResponse, RedirectResponse
 
-    return HTMLResponse(content=unified_login_html, status_code=200)
+    # Directly redirect to SSO login instead of showing the UI
+    return RedirectResponse(url=f"{base_url_to_redirect_to}/sso/login", status_code=302)
 
 
 @router.get("/sso/login", tags=["experimental"], include_in_schema=False)
