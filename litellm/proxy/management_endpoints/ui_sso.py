@@ -124,21 +124,21 @@ async def google_login(request: Request, source: Optional[str] = None, key: Opti
 
     # Build the unified login page HTML
     error_message = ""
-    if error == "1":
-        error_message = """
-        <div style="
-            background-color: #fef2f2;
-            border-left: 4px solid #dc2626;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 20px;
-            color: #dc2626;
-            font-size: 14px;
-            font-weight: 500;
-        ">
-            ⚠️ Invalid username or password. Please try again.
-        </div>
-        """
+    # if error == "1":
+    #     error_message = """
+    #     <div style="
+    #         background-color: #fef2f2;
+    #         border-left: 4px solid #dc2626;
+    #         border-radius: 6px;
+    #         padding: 16px;
+    #         margin-bottom: 20px;
+    #         color: #dc2626;
+    #         font-size: 14px;
+    #         font-weight: 500;
+    #     ">
+    #         ⚠️ Invalid username or password. Please try again.
+    #     </div>
+    #     """
 
     sso_button = ""
     if sso_available:
